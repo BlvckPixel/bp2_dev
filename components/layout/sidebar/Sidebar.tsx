@@ -45,11 +45,14 @@ const Sidebar: React.FC = () => {
   return (
     <div className={`h-screen w-64 ${style.sidebar}`}>
       <h1 className={` ${style.blackColor} ${style.logo} `}>
-        <img
-          src="/logo-cube-transparent-bck.png"
-          alt="Image 2"
-          className="no-fade"
-        />{' '}
+        <Link href="/">
+          <img
+            src="/logo-cube-transparent-bck.png"
+            alt="Image 2"
+            className="no-fade"
+          />{' '}
+        </Link>
+        
         <span>
           BLVCK<span className={style.italics}>PIXEL</span>
         </span>
@@ -211,6 +214,16 @@ const Sidebar: React.FC = () => {
           </button>
           {menuOpen5 && (
             <div className={style.items}>
+              <Link href="/dashboard/email" legacyBehavior>
+                <a
+                  className={`${
+                    pathname === '/dashboard/email' ? style.active : ''
+                  } w-full`}
+                >
+                  Emails
+                </a>
+              </Link>
+
               <Link href="/dashboard/settings" legacyBehavior>
                 <a
                   className={`${

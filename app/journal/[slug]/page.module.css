@@ -6,7 +6,8 @@
   scroll-snap-align: start;
   display: flex;
   justify-content: center;
-  flex: 1 0 100vh;
+  /* flex: 1 0 100vh; */
+  flex: 1 0 100dvh;
   scroll-snap-align: start;
   position: relative;
 }
@@ -35,7 +36,6 @@
   text-align: justify;
   font-size: 20px;
 }
-
   
 .editorialSection .wrapper{
 
@@ -49,7 +49,7 @@
 }
 
 .editorialSection .wrapper .col{
-  width: 50%;
+  width: 65%;
   /* justify-self: revert; */
   flex: 1 1 auto;
   display: flex;
@@ -77,6 +77,30 @@
   overflow-y: scroll;
 }
 
+
+
+@media (max-width: 1024px) {
+  .editorialSection .wrapper .col {
+    width: 90%;
+  }
+  .vinyl {
+    width: 100%;
+  }
+}
+
+
+
+@media (max-width: 768px) {
+  .editorialSection .wrapper {
+    padding: 0;
+  }
+  .editorialSection .wrapper .col {
+    width: 100%;
+  }
+  .vinyl {
+    width: 100%;
+  }
+}
 .pageContainerWide {
   width: 100%;
   margin-right: auto;
@@ -85,6 +109,7 @@
   padding-left: 15px;
   }
  
+
  .header{
     position: fixed;
     top: 0;
@@ -458,9 +483,40 @@
     cursor: grab;
   }
 
+  .editorialSwiper .swiperslide {
+    color: #fff !important;
+    font-size: 20px !important;
+    font-family: 'HelveticaNeueCyr-Light' !important;
+  }
+
   .editorialSwiper .swiperslide:active{
     cursor: grabbing;
   }
+
+
+/* Added By Brobot */
+.vinyl {
+  background: black;
+  transition: background-size 0.5s ease;
+}
+
+.vinyl:hover {
+  background: none;
+  background-size: 120%;
+}
+
+
+
+@media (max-width: 768px) {
+  .pageContainerWide {
+    padding: 15px !important;
+    margin: 0px;
+  }
+  .editorialSwiper .swiperslide {
+    font-size: 16px !important;
+  }
+}
+/* Ended Here */
 
   @media (min-width: 993px) and (max-width: 1200px) {
     .blvckbookDetail{

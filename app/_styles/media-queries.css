@@ -78,7 +78,8 @@
   .popup {
     padding: 15px !important;
     height: 100% !important;
-    max-height: 100vh !important;
+    /* max-height: 100vh !important; */
+    max-height: 100dvh !important;
   }
 
   .popup.black .search-input input {
@@ -200,14 +201,16 @@
 
 @media (max-width: 992px) {
   .mySwiper {
-    min-height: 100vh;
+    /* min-height: 100vh; */
+    min-height: 100dvh;
     min-height: -webkit-fill-available;
     /* height: calc(100vh - 90px) !important; */
   }
 
   @supports (-webkit-touch-callout: none) {
     .mySwiper {
-      height: calc(100vh - 120px) !important;
+      /* height: calc(100vh - 120px) !important; */
+      height: calc(100dvh - 120px) !important;
     }
   }
 
