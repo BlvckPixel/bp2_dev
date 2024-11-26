@@ -89,6 +89,7 @@ function SharedJournalEditionPage({ slug, edition }: { slug?: string, edition?: 
     const [currentPage, setCurrentPage] = React.useState(1);
     const [hasMore, setHasMore] = React.useState(true);
     const [borderColor, setBorderColor] = React.useState('#F000FF');
+    const [isHovered, setIsHovered] = useState(false);
 
     const { ref, inView } = useInView({
       threshold: 1.0,
@@ -243,6 +244,33 @@ function SharedJournalEditionPage({ slug, edition }: { slug?: string, edition?: 
     setSignInPopupVisible(false);
   };
 
+  const ShareButton = ({item}: {item: any}) => {
+    return (
+      <button
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="text-sm flex items-center gap-2 text-nowrap"
+      style={{
+        color: isHovered
+          ? borderColor
+            ? borderColor.replace(/"/g, '') // Apply dynamic borderColor if provided
+            : "#dd47f7" // Fallback to hoverColor from localStorage
+          : '', // Default color if not hovered
+        transition: 'color 0.3s ease', // Smooth color transition
+      }}
+      onClick={() => openShareModal({
+        title: item.title,
+        slug: `/journal/${slug}/${edition}/${item.slug}`,
+        description: item.description,
+        meta_keywords: item?.meta_keywords,
+        images: item.images,
+      })}
+    >
+      <FaShareNodes /> [ share ]
+    </button>
+    )
+  }
+
   const openSignInPopup = () => {
     setSignInPopupVisible(true);
   };
@@ -334,7 +362,7 @@ function SharedJournalEditionPage({ slug, edition }: { slug?: string, edition?: 
         openSignInPopup={openSignInPopup}
         displayGoBack={true}
         showHome={true}
-        invert={false}
+        invert={true}
         isProtected={true}
       />
 
@@ -365,14 +393,28 @@ function SharedJournalEditionPage({ slug, edition }: { slug?: string, edition?: 
                 <Swiper
                   slidesPerView={1}
                   navigation={false}
-                  pagination={{ clickable: true }}
+                  pagination={{
+                    clickable: true,
+                    // renderBullet: (index, className) => {
+                    //   // Use renderBullet to style pagination bullets with logic
+                    //   return `<span class="${className}" style="
+                    //     background-color: ${index === 0 ? 'yellow' : '#ddd'};">
+                    //   </span>`;
+                    // }
+                  }}
+                  // pagination={{ clickable: true }}
                   autoplay={false}
                   speed={1000}
                   style={{
                     borderColor: borderColor.replace(/"/g, '') || '#fff'
                   }}
+                  onSwiper={(swiper) => {
+                    // Initial active bullet coloring
+                    const activeBullet = swiper.pagination.bullets[swiper.activeIndex];
+                    if (activeBullet) activeBullet.style.backgroundColor = `${borderColor.replace(/"/g, '')}`;
+                  }}
                   loop={true}
-                  className={`mySwiper1 border-[5px] rounded-[15px] overflow-hidden ${borderColor ? `border-[${borderColor.replace(/"/g, '')}]` : 'border-white'}`}
+                  className={`mySwiper1 border-[5px] rounded-[2px] overflow-hidden [&>*span]:!bg-black ${borderColor ? `border-[${borderColor.replace(/"/g, '')}]` : 'border-white'} [&>span.swiper-pagination-bullet-active]:bg-[${borderColor.replace(/"/g, '')}]`}  swiper-pagination-bullet-active
                   spaceBetween={0}
                   modules={[
                     Autoplay,
@@ -391,7 +433,14 @@ function SharedJournalEditionPage({ slug, edition }: { slug?: string, edition?: 
                       setIsBgDark(true);
                     } else {
                       setIsBgDark(false);
-                    }
+                    } 
+
+                    swiper.pagination.bullets.forEach((bullet) => {
+                      bullet.style.backgroundColor = '#ddd'; // default color for inactive bullets
+                    });
+                    const activeBullet = swiper.pagination.bullets[swiper.activeIndex];
+                    if (activeBullet) activeBullet.style.backgroundColor = `${borderColor.replace(/"/g, '')}`; // color for the active bullet
+                  
                   }}
                   effect="fade"
                 >
@@ -414,11 +463,15 @@ function SharedJournalEditionPage({ slug, edition }: { slug?: string, edition?: 
                 <div className="mt-10 space-y-6">
                   <div className="flex justify-between flex-col gap-5" style={{ flexDirection: 'column' }}>
                     <div className='flex justify-between items-center'>
-                      <h1 className="text-base md:text-xl font-bold">
+                      <h1 className="text-base mutune md:text-[50px] font-bold md:leading-[60px]">
                         {item.title}
                       </h1>
-                      <button
-                        className="text-sm flex items-center gap-2 text-nowrap hover:!text-[#F000FF]"
+                      {/* <button
+                      // onMouseEnter={()=> }
+                        className={`text-sm flex items-center gap-2 text-nowrap ${borderColor && `text-[${borderColor.replace(/"/g, '')}]`}  ${borderColor ? `hover:!text-[${borderColor.replace(/"/g, '')}]` : 'hover:!text-[#F000FF]'}`}
+                        style={{
+                          
+                        }}
                         onClick={() => openShareModal({
                             title: item.title,
                             slug: `/journal/${slug}/${edition}/${item.slug}`,
@@ -428,7 +481,8 @@ function SharedJournalEditionPage({ slug, edition }: { slug?: string, edition?: 
                         })}
                       >
                         <FaShareNodes/> [ share ]
-                      </button>
+                      </button> */}
+                       <ShareButton item={item}/>
                     </div>
 
                     <Description text={item.description}/>

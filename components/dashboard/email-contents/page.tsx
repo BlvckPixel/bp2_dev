@@ -4,6 +4,7 @@ import EmailComposer from './EmailComposer';
 import axios from 'axios';
 import { useAuth } from '@/src/context/AuthProvider';
 import QuillEditor from './QuillEditor';
+import { SlArrowLeft } from 'react-icons/sl';
 
 
 type User = {
@@ -21,15 +22,22 @@ type User = {
 };
 
 
-const Emails: React.FC = () => {
+interface EmailFormerProps {
+  sbj?: string;
+  bdy?: string;
+  action?: any
+}
+
+
+const Emails: React.FC<EmailFormerProps> = ({ sbj = '', bdy = '', action }) => {
   const [to, setTo] = useState('');
-  const [subject, setSubject] = useState('');
+  const [subject, setSubject] = useState(sbj);
   const [body, setBody] = useState('');
-  const [message, setMessage] = useState<string>('');
+  const [message, setMessage] = useState<string>(bdy);
   const handleBodyChange = (content: string) => {
     setMessage(content); 
   };
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isEmailSelect, setIsEmailSelect] = useState(false);
   const [error, setError] = useState<string>('');
   const { loggedUser } = useAuth();
@@ -49,20 +57,47 @@ const closeErrorMessage = () => {
     setError('');
 };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); //
 
     // Log the form data
     console.log({
-      to,
+      to: filteredEmails,
       subject,
-      body,
+      body: message,
     });
 
+    try {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/send-custom-email`, 
+        {
+          emailArray: filteredEmails,
+          subject,
+          body: message
+        }
+      );
+
+      const dial = response.status;
+      if(dial === 200 || dial === 200) {
+        setSuccessMessage("Email sent successfully");
+      } else {
+        setError("Error sending Emails");
+      }
+    } catch (error: any) {
+      setError(error?.message);
+    } finally {
+      setTimeout(() => {
+        setError('');
+        setSuccessMessage('')
+        setTo('');
+        setSubject('');
+        setBody('');
+      }, 5000);
+    }
+
     // Optionally, you can clear the fields after submission
-    setTo('');
-    setSubject('');
-    setBody('');
+    // setTo('');
+    // setSubject('');
+    // setBody('');
   };
 
   const closeModal = () => setIsEmailSelect(false);
@@ -136,8 +171,11 @@ const closeErrorMessage = () => {
   return (
     <div className='flex flex-col w-full h-5/6 bg-white rounded-[12px] overflow-hidden'>
       <div className='bg-black text-white p-3 pl-4'>
-        Compose Email
+        <button title='Go Back' onClick={action}><SlArrowLeft/></button> &nbsp; &nbsp; Compose Email
       </div>
+      {/* <div className='bg-black text-white p-3 pl-4'>
+        Compose Email
+      </div> */}
       <form onSubmit={handleSubmit} className='relative flex-1 flex flex-col gap-2 w-full py-2 px-4'>
         <input
           type="text"

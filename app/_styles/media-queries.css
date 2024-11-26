@@ -24,7 +24,8 @@
     font-size: 26px !important;
   }
 
-  .swiper-slide p {
+  .swiper-slide p,
+  .swiper-slide div {
     font-family: 'HelveticaNeueCyr-Light';
     font-size: 16px !important;
   }
@@ -111,6 +112,18 @@
   .mySwiper > .swiper-wrapper > .slide-banner .banner-slider-content {
     width: 100% !important;
   }
+
+  .slide-text {
+    position: absolute;
+    left: 50px;
+    opacity: 0;
+    transition: opacity 2s ease-in-out; /* Slow fade effect */
+  }
+  
+  .slide-text.active {
+    opacity: 1;
+  }
+  
 
   .mySwiper .swiper-wrapper .slide > div.scrollanimation {
     margin-left: 0 !important;
@@ -307,7 +320,8 @@
     width: 80% !important;
   }
 
-  .swiper-slide p {
+  .swiper-slide p,
+  .swiper-slide div {
     font-size: 24px !important;
   }
 

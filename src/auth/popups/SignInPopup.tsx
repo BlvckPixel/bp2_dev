@@ -5,6 +5,8 @@ import axios, { AxiosError } from 'axios';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthProvider';
 import { useRouter } from 'next/navigation';
+import { RiCloseCircleLine } from 'react-icons/ri';
+import { AiOutlineClose } from 'react-icons/ai';
 
 interface SignInPopupProps {
   onClose: () => void;
@@ -13,6 +15,15 @@ interface SignInPopupProps {
   onLoggedOut: () => void;
   showCloseButton?: boolean;
 }
+
+type Feature = {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
 
 interface SignUpErrorResponse {
   errors: { [key: string]: string[] };
@@ -62,12 +73,36 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
   const [editable, setEditable] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<string>('');
   const router = useRouter();
+  const [demFeatures, setDemFeatures] = useState<Feature[]>([]);
   const [authUser, setAuthUser] = useState<boolean>(false);
   const [packages, setPackages] = useState<any[]>([]);
   const [showPackageSelection, setShowPackageSelection] =
     useState<boolean>(false);
 
   const [showForgotPassword, setShowForgotPassword] = useState<boolean>(false);
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState('Bitcoin');
+
+  const paymentTypes = ['Cypto', 'Card', 'PayPal', 'Bank Transfer'];
+
+  const handlePaymentChange = async (payment: string) => {
+    setSelectedPayment(payment);
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/user/payment-method`, {
+          payment_method: payment.toLowerCase(),
+        },
+        {
+          headers: { Authorization: token },
+        }
+      );
+      console.log("Payment Method updated")
+    } catch (error: any) {
+      console.log(error?.message)
+    }
+    setIsDropdownOpen(false); // Close dropdown after selection
+  };
 
   const handleDashboardNavigation = () => {
     router.push('/dashboard');
@@ -86,10 +121,13 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/packages`
-        );
-        setPackages(response.data);
+        const [featuresResponse, packagesResponse] = await Promise.all([
+          axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/features`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/packages`),
+        ]);
+
+        setDemFeatures(featuresResponse.data.data || []); // Ensure it’s an array
+        setPackages(packagesResponse.data || []);
       } catch (error) {
         console.error('Failed to fetch packages', error);
       }
@@ -97,6 +135,11 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
 
     fetchPackages();
   }, []);
+
+  function getFeatureNameById(id: string | number): string | null {
+    const feature = demFeatures.find((item) => item.id === parseInt(id as string, 10));
+    return feature ? feature.name : null;
+  }
 
   useEffect(() => {
     if (loggedUser?.role_id == 1 || loggedUser?.role_id == 2) {
@@ -136,6 +179,7 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
             setEmail(userData.user.email);
             setPhone(userData.user.phone);
             setUserRole(userData.user.role);
+            // setSelectedPayment()
           }
         } catch (error) {
           console.error('Failed to fetch user data', error);
@@ -174,7 +218,7 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
         axiosError.response.data.error
       ) {
         if (axiosError.response.status === 401) {
-          setErrors({ error: ['Unauthorized: Invalid email or password.'] });
+          setErrors({ error: ['Don\'t have an account yet?'] });
         } else if (axiosError.response.status === 403) {
           setErrors({
             error: ['Account not activated. Please check your email.'],
@@ -209,7 +253,8 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
       console.log('Password reset link sent', response.data);
       setLoading(false);
       setSuccess(true);
-      setButtonText('✔');
+      // setButtonText('✔');
+      setButtonText('Check your email and click on the password reset link')
     } catch (error) {
       console.error('Password reset failed', error);
       const axiosError = error as AxiosError<{ error: string }>;
@@ -521,11 +566,24 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
                       </div>
                     </div>
                     <div className={`${style.subscription} ${style.frmGrp}`}>
-                      <div className={` ${style.muted} `}>
+                      <div className={` ${style.muted}`}>
                         Method of payment:{' '}
                       </div>
-                      <div className={` ${style.cPlan} `}>Bitcoin</div>
-                      <div className={` ${style.action} `}>[Change]</div>
+                      <div className={` ${style.cPlan}`}>
+                        {selectedPayment}
+                      </div>
+                      <div className={` ${style.action} cursor-pointer`} onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+                        [Change]
+                      </div>
+                      {isDropdownOpen && (
+                        <div className={style.dropdown}>
+                          {paymentTypes.map((payment, index) => (
+                            <div key={index} className={style.dropdownItem} onClick={() => handlePaymentChange(payment)}>
+                              {payment}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div
@@ -558,13 +616,11 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
                           {pkg.price}
                           <sub>£</sub>
                         </span>
-                        <span>
-                          <ul>
-                            {pkg.features.map(
-                              (feature: string, index: number) => (
-                                <li key={index}>{feature}</li>
-                              )
-                            )}
+                        <span className='!px-[20px]'>
+                          <ul className='nweton'>
+                            {pkg.features.map((featureId: any, index: number) => (
+                              <li key={index}>{getFeatureNameById(featureId) || 'Unknown Feature'}</li>
+                            ))}
                           </ul>
                         </span>
                       </div>
@@ -637,6 +693,14 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
                               <a
                                 href="#"
                                 style={{ textDecoration: 'underline' }}
+                                onClick={() => handleTabChange('subscribe')}
+                              >
+                                Click here
+                              </a>
+                               &nbsp;to Subscribe to the BLVCKBOOK <br/><br/>
+                               <a
+                                href="#"
+                                style={{ textDecoration: 'underline' }}
                                 onClick={() => handleTabChange('forget')}
                               >
                                 Forget Password?
@@ -644,6 +708,13 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
                             </p>
                           ))
                         )}
+                          {/* <a
+                            href="#"
+                            style={{ textDecoration: 'underline' }}
+                            onClick={() => handleTabChange('forget')}
+                          >
+                            Forget Password
+                          </a> */}
                       </div>
                     </form>
                   </div>
@@ -700,13 +771,11 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
                           {pkg.price}
                           <sub>£</sub>
                         </span>
-                        <span>
-                          <ul>
-                            {pkg.features.map(
-                              (feature: string, index: number) => (
-                                <li key={index}>{feature}</li>
-                              )
-                            )}
+                        <span className='!px-[20px]'>
+                          <ul className='nweton'>
+                            {pkg.features.map((featureId: any, index: number) => (
+                              <li key={index}>{getFeatureNameById(featureId) || 'Unknown Feature'}</li>
+                            ))}
                           </ul>
                         </span>
                       </div>
@@ -842,7 +911,8 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
             </p>
           )}
           {showCloseButton && (
-            <button onClick={onClose} className={style.close}>
+            <button onClick={onClose} className={style.close} >
+              {/* <AiOutlineClose size={24}/>  style={{ fontSize: '20px !important' }}*/}
               x
             </button>
           )}

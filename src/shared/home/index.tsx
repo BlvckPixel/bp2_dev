@@ -19,6 +19,7 @@ import '../../../app/test.css';
 import SignInPopup from '@/src/auth/popups/SignInPopup';
 import SearchPopup from '@/src/popups/SearchPopup';
 import TalentsPopup from '@/src/popups/TalentsPopup';
+import PartnerPopup from '@/src/popups/PartnerPopup';
 import DefaultPopup from '@/src/popups/DefaultPopup';
 import { SlArrowLeft, SlArrowRight } from 'react-icons/sl';
 SwiperCore.use([Navigation, Pagination]);
@@ -31,6 +32,7 @@ import Link from 'next/link';
 import { useApp } from '@/src/context/AppProvider';
 import { BiSortAlt2 } from 'react-icons/bi';
 import axios from 'axios';
+import Image from 'next/image';
 
 export const getFullMonth = (dateString: string): string => {
   const date = new Date(dateString);
@@ -55,6 +57,19 @@ export const useSessionStorage = (key: any, initialValue: any) => {
   return [value, setValue];
 }
 
+
+
+const partnersDetails = [
+  {src: '/AlineReiniche6.png', name: 'Chafik Zerrouki', details: 'Chafik Zerrouki is a futurist and visionary architect known for seamlessly integrating generative AI, biomimicry, and urban innovation into immersive, intelligent design. With experience at Zaha Hadid Architects and award-winning projects across multiple continents, Chafik redefines architecture\'s future in physical spaces and the Metaverse. \n\n At BLVCKPIXEL, his approach to cognitive transformation merges advanced technologies with human creativity, pushing the boundaries of urban planning and design. His work shapes environments that adapt, evolve, and interact, creating spaces that are not only functional but intuitively responsive to human behavior and the complexities of modern cities.'},
+  {src: '/AlineReiniche8.png', name: 'Lans King', details: 'Lans is a visionary in cognitive transformation with 25 years of experience in digital innovation. He has collaborated with major brands like LVMH and Goldman Sachs focusing on strategy and implementation. \n\n At BLVCKPIXEL, he combines creativity and technology to redefine digital experiences and drive business evolution. Additionally, Lans is an interdisciplinary artist who integrates traditional art with digital media. Lans challenges everyone at BP to see things from radically new. For him, cognitive transformation innovates our mindset as much as technology in order to thrive in this new world.'},
+  {src: '/AlineReiniche7.png', name: 'Edouard De Miollis', details: 'Édouard de Miollis, a true pioneer in the digital space with over two decades of trailblazing innovation! From founding early internet companies in Europe to serving as a State Counselor for Technologies at the French Presidency, Édouard has been at the forefront of transformative efforts across industries, and society. \n\n At BLVCKPIXEL, Édouard drives key initiatives in AI, GreenTech, and Cognitive Transformation, advising governments, global organizations, and investment funds on how to harness technology for impactful, future-oriented solutions. His expertise perfectly aligns with our mission to shape the Cognitive Organisations, Enterprises, and Cities of tomorrow, where technology, sustainability, and human ingenuity converge as driving forces to create more adaptive, resilient,  and smarter ecosystems.'},
+  {src: '/AlineReiniche9.png', name: 'Vincent Binet', details: 'Vincent is a senior expert in digital marketing with nearly three decades of experience, specialising in brand visibility & awareness since 1997. Vincent has worked with top agencies and prestigious global brands, mastering the art of e-marketing, branding, and digital strategy. As a former Google Ambassador, he has shared his expertise on SEO, AI-driven marketing, and branding at Google Academies and industry-leading conferences. \n\n At BLVCKPIXEL, Vincent will spearhead our educational and training programs for leading corporations. His deep understanding of branding and emerging technologies like AI fuels our mission of Cognitive Transformation, turning innovative strategies into actionable business operations that foster growth. By bridging digital strategy with brand development, Vincent helps businesses not only to thrive but also adapt and excel in the rapidly evolving digital landscape.'},
+//   {src: '/AlineReiniche1.png', name: 'Aline Reiniche', details: 'Business oriented, I have proven experience in establishing lasting and profitable relationships with international top clients & partners on behalf of advertising houses (Lagardère Advertising),  media agencies (Starcom from Publicis Group) and SaaS Adtechs (Adjust from Applovin Group) ever since +20 years.'},
+// ]
+]
+
+
+
 const SharedHomeComponent: React.FC = () => {
   const [isMenuPopupVisible, setMenuPopupVisible] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -73,9 +88,11 @@ const SharedHomeComponent: React.FC = () => {
   const [isSignInPopupVisible, setSignInPopupVisible] = useState(false);
   const [isSearchPopupVisible, setSearchPopupVisible] = useState(false);
   const [isTalentsPopupVisible, setTalentsPopupVisible] = useState(false);
+  const [isPartnerPopupVisible, setPartnerPopupVisible] = useState(false);
   const swiperRef = useRef<SwiperCore | null>(null);
   const swiperRef1 = useRef<SwiperCore | null>(null);
   const swiperRef2 = useRef<SwiperCore | null>(null);
+  const swiperRefPartner = useRef<SwiperCore | null>(null);
   const swiperRefBanner = useRef<SwiperCore | null>(null);
   const swiperRefJournal = useRef<SwiperCore | null>(null);
   const [activeMenu, setActiveMenu] = useState<number>(0);
@@ -86,7 +103,9 @@ const SharedHomeComponent: React.FC = () => {
   const [showSecondImage, setShowSecondImage] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [bannerBg, setBannerBg] = useState('');
-  const [years, setYears] = useState<number[]>([2024, 2023, 2022, 2021, 2020]);
+  // const [years, setYears] = useState<number[]>([2024, 2023, 2022, 2021, 2020]);
+  const [years, setYears] = useState<number[]>([2024]);
+  const [partnerDet, setPartnerDet] = useState(null);
   const [selectedYear, setSelectedYear] = useState<number>(2024);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const menus = [
@@ -98,6 +117,22 @@ const SharedHomeComponent: React.FC = () => {
     'journal',
     'contact | jobs',
   ];
+
+  const [showText, setShowText] = useState(0);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setShowText((prev) => (prev === 0 ? 1 : 0));
+  }, 5000); // Change every 3 seconds
+
+  return () => clearInterval(interval);
+}, []);
+
+
+const handleOpenPartner = (det: any) => {
+  setPartnerPopupVisible(!isPartnerPopupVisible);
+  setPartnerDet(det);
+}
 
   // added by Brobot
   const [activeIndex, setActiveIndex] = useState(0);
@@ -170,7 +205,7 @@ const SharedHomeComponent: React.FC = () => {
   const handleGoBack = () => {
     console.log(visitedSlides);
     if (visitedSlides.length > 1) {
-      const lastVisitedIndex = visitedSlides[visitedSlides.length - 2];
+      const lastVisitedIndex = visitedSlides[visitedSlides.length - 3];
       if (swiperRef.current) {
         swiperRef.current.slideTo(lastVisitedIndex);
         setVisitedSlides((prev) => prev.slice(0, -1));
@@ -193,6 +228,9 @@ const SharedHomeComponent: React.FC = () => {
   const closeSearchPopup = () => setSearchPopupVisible(false);
   const openTalentsPopup = () => setTalentsPopupVisible(true);
   const closeTalentsPopup = () => setTalentsPopupVisible(false);
+  
+  const openPartnerPopup = () => setPartnerPopupVisible(true);
+  const closePartnerPopup = () => setPartnerPopupVisible(false);
 
   const handleSignInSuccess = (token: string) => {
     if (token) {
@@ -223,6 +261,18 @@ const SharedHomeComponent: React.FC = () => {
     }
   };
 
+  const handlePrevPart = () => {
+    if (swiperRefPartner.current) {
+      swiperRefPartner.current.slidePrev();
+    }
+  };
+
+  const handleNextPart = () => {
+    if (swiperRefPartner.current) {
+      swiperRefPartner.current.slideNext();
+    }
+  };
+
   const handlePrev1 = () => {
     if (swiperRef2.current) {
       swiperRef2.current.slidePrev();
@@ -237,16 +287,17 @@ const SharedHomeComponent: React.FC = () => {
 
   // function to handle menu click and slide to the corresponding slide
   const handleMenuClick = (index: number) => {
+    saveNumberToSession(index);
     setActiveMenu(index);
     setIsOpen(false);
     if (swiperRef.current) {
       if (index === 0) swiperRef.current.slideTo(1);
-      else if (index === 1) swiperRef.current.slideTo(4);
-      else if (index === 2) swiperRef.current.slideTo(6);
-      else if (index === 3) swiperRef.current.slideTo(11);
-      else if (index === 4) swiperRef.current.slideTo(13);
-      else if (index === 5) swiperRef.current.slideTo(16);
-      else if (index === 6) swiperRef.current.slideTo(17);
+      else if (index === 1) swiperRef.current.slideTo(5); // -1  5
+      else if (index === 2) swiperRef.current.slideTo(7);
+      else if (index === 3) swiperRef.current.slideTo(12);
+      else if (index === 4) swiperRef.current.slideTo(14);
+      else if (index === 5) swiperRef.current.slideTo(17);
+      else if (index === 6) swiperRef.current.slideTo(18);
       setActiveMenu(index);
     }
   };
@@ -264,6 +315,23 @@ const SharedHomeComponent: React.FC = () => {
       }, delay);
     };
   };
+
+  const [savedNumber, setSavedNumber] = useState<number>(0);
+
+  // Function to handle saving the number to sessionStorage
+  const saveNumberToSession = (numberToSave: number) => {
+    sessionStorage.setItem("savedNumber", numberToSave.toString());
+    setActiveMenu(numberToSave);
+  };
+
+  // Check for the saved number in sessionStorage on component mount
+  useEffect(() => {
+    const storedNumber = sessionStorage.getItem("savedNumber");
+    setSavedNumber(Number(storedNumber));
+    if (storedNumber) {
+      swiperRef.current?.slideTo(17)
+    }
+  }, [savedNumber]);
 
   //
   const handleWheel = debounce((event: WheelEvent) => {
@@ -288,20 +356,20 @@ const SharedHomeComponent: React.FC = () => {
     }, 200);
   }, 95);
 
-  useEffect(() => {
-    const menuItemsContainer = document.getElementById('menu-items');
-    if (menuItemsContainer) {
-      menuItemsContainer.addEventListener('wheel', handleWheel);
-    }
-    return () => {
-      if (menuItemsContainer) {
-        menuItemsContainer.removeEventListener('wheel', handleWheel);
-      }
-      if (wheelTimeout.current) {
-        clearTimeout(wheelTimeout.current);
-      }
-    };
-  }, [activeMenu]);
+  // useEffect(() => {
+  //   const menuItemsContainer = document.getElementById('menu-items');
+  //   if (menuItemsContainer) {
+  //     menuItemsContainer.addEventListener('wheel', handleWheel);
+  //   }
+  //   return () => {
+  //     if (menuItemsContainer) {
+  //       menuItemsContainer.removeEventListener('wheel', handleWheel);
+  //     }
+  //     if (wheelTimeout.current) {
+  //       clearTimeout(wheelTimeout.current);
+  //     }
+  //   };
+  // }, [activeMenu]);
 
   useEffect(() => {
     const activeSlideIndex = swiperRef.current?.activeIndex;
@@ -310,7 +378,7 @@ const SharedHomeComponent: React.FC = () => {
       swiperRef.current &&
       swiperRef.current.activeIndex
     ) {
-      const slideMapping = [1, 4, 6, 11, 13, 16, 17];
+      const slideMapping = [1, 5, 7, 12, 14, 17, 18];
       setTimeout(() => {
         swiperRef.current?.slideTo(slideMapping[activeMenu]);
       }, 10);
@@ -501,36 +569,36 @@ const SharedHomeComponent: React.FC = () => {
             mobileMenuContainer.style.display = 'block';
           }
         }
-        if (activeSlideIndex >= 1 && activeSlideIndex < 4) {
+        if (activeSlideIndex >= 1 && activeSlideIndex < 5) {
           setActiveMenu(0);
           setAfterActiveMenu(1);
           scrollToActiveMenuItem(0);
-        } else if (activeSlideIndex >= 4 && activeSlideIndex < 6) {
+        } else if (activeSlideIndex >= 5 && activeSlideIndex < 7) {
           setBeforeActiveMenu(0);
           setActiveMenu(1);
           setAfterActiveMenu(2);
           scrollToActiveMenuItem(1);
-        } else if (activeSlideIndex >= 6 && activeSlideIndex < 11) {
+        } else if (activeSlideIndex >= 7 && activeSlideIndex < 12) {
           setBeforeActiveMenu(1);
           setActiveMenu(2);
           setAfterActiveMenu(3);
           scrollToActiveMenuItem(2);
-        } else if (activeSlideIndex >= 11 && activeSlideIndex < 13) {
+        } else if (activeSlideIndex >= 12 && activeSlideIndex < 14) {
           setBeforeActiveMenu(2);
           setActiveMenu(3);
           setAfterActiveMenu(4);
           scrollToActiveMenuItem(3);
-        } else if (activeSlideIndex >= 13 && activeSlideIndex < 16) {
+        } else if (activeSlideIndex >= 14 && activeSlideIndex < 17) {
           setBeforeActiveMenu(3);
           setActiveMenu(4);
           setAfterActiveMenu(5);
           scrollToActiveMenuItem(4);
-        } else if (activeSlideIndex === 16) {
+        } else if (activeSlideIndex === 17) {
           setBeforeActiveMenu(4);
           setActiveMenu(5);
           setAfterActiveMenu(6);
           scrollToActiveMenuItem(5);
-        } else if (activeSlideIndex >= 17) {
+        } else if (activeSlideIndex >= 18) {
           setBeforeActiveMenu(5);
           setActiveMenu(6);
           scrollToActiveMenuItem(6);
@@ -559,7 +627,8 @@ const SharedHomeComponent: React.FC = () => {
           swiperRef.current?.activeIndex === 15 ||
           swiperRef.current?.activeIndex === 16 ||
           swiperRef.current?.activeIndex === 17 ||
-          swiperRef.current?.activeIndex === 18
+          swiperRef.current?.activeIndex === 18 ||
+          swiperRef.current?.activeIndex === 19
         ) {
           setTimeout(() => {
             swiperRef.current?.mousewheel.enable();
@@ -621,7 +690,8 @@ const SharedHomeComponent: React.FC = () => {
         <a className={`selected-value `} style={{ display: 'none' }}>
           {activeMenu !== null ? menus[activeMenu] : 'Select Menu'}
         </a>
-        <div className="wrapper" ref={containerRef}>
+        <div className="wrapper" >
+        {/* ref={containerRef} */}
           {menus.map((menu, index) => (
             <a
               href="#"
@@ -637,7 +707,7 @@ const SharedHomeComponent: React.FC = () => {
                       : afterActiveMenu === index
                         ? 'bactive'
                         : ''
-                } ${isBgDark ? 'white' : ''}
+                } ${isBgDark ? 'bactive white' : ''}
               `}
             >
               {activeMenu === index ? menu : menu}
@@ -655,6 +725,7 @@ const SharedHomeComponent: React.FC = () => {
       )}
       {isSearchPopupVisible && <SearchPopup onClose={closeSearchPopup} />}
       {isTalentsPopupVisible && <TalentsPopup onClose={closeTalentsPopup} />}
+      {isPartnerPopupVisible && <PartnerPopup onClose={closePartnerPopup} pic={partnerDet} />}
       {popupVisible && (
         <DefaultPopup
           title={popupContent.title}
@@ -734,7 +805,7 @@ const SharedHomeComponent: React.FC = () => {
             setIsBgDark(false);
           }
 
-          if (swiper.activeIndex === 16) {
+          if (swiper.activeIndex === 17) {
             setIsBgDark(true);
           } else {
             setIsBgDark(false);
@@ -823,6 +894,36 @@ const SharedHomeComponent: React.FC = () => {
           </Swiper>
         </SwiperSlide>
 
+        <SwiperSlide className='slide'>
+          <div className="slide-content">
+            <div
+              className="flex gap-4 relative items-center h-fit"
+              style={{ fontFamily: `HelveticaNeueCyr-Light!important` }}
+            >
+              <img
+                src="/logo-cube-transparent-bck.png"
+                alt=""
+                className="h-[25px] md:h-[40px] !text-[24px] md:!text-[40px]"
+              />
+              <span
+                className={`slide-text uppercase !text-[24px] md:!text-[40px] ${
+                  showText === 0 ? "active" : ""
+                }`}
+              >
+                blvck<span className="italic">pixel</span>
+              </span>
+              <span
+                className={`slide-text !text-[24px] md:!text-[40px] ${
+                  showText === 1 ? "active" : ""
+                }`}
+              >
+                the foresight company
+              </span>
+            </div>
+          </div>
+        </SwiperSlide>
+
+
         {/* slide 2 */}
         <SwiperSlide className="slide">
           <div className="slide-content">
@@ -843,7 +944,7 @@ const SharedHomeComponent: React.FC = () => {
         {/* slide 3 */}
         <SwiperSlide className="slide">
           <div className="slide-content">
-            <h1 className="blackColor" style={{ animationDelay: '0.01s' }}>
+            <h1 className="blackColor" style={{ animationDelay: '0.02s' }}>
               vision
             </h1>
             <p
@@ -861,7 +962,7 @@ const SharedHomeComponent: React.FC = () => {
           <div className="slide-content">
             <p
               className="para wide blackColor"
-              style={{ animationDelay: '0.01s' }}
+              style={{ animationDelay: '0.02s' }}
             >
               Our vision is focused on Cognitive Transformation: the convergence of technologies that will affect the way we live and work in the coming years such as artificial intelligence, blockchain and cryptography, spatial computing, advanced data mesh, robotics,...
             </p>
@@ -883,7 +984,7 @@ const SharedHomeComponent: React.FC = () => {
         {/* slide 5 */}
         <SwiperSlide className="slide">
           <div className="slide-content">
-            <h1 className="blackColor" style={{ animationDelay: '0.01s' }}>
+            <h1 className="blackColor" style={{ animationDelay: '0.02s' }}>
               anthropology + technology
             </h1>
             <p className="para wide blackColor" style={{ animationDelay: '0.6s' }}>
@@ -897,7 +998,7 @@ const SharedHomeComponent: React.FC = () => {
           <div className="slide-content">
             <p
               className="para wide blackColor"
-              style={{ animationDelay: '0.01s' }}
+              style={{ animationDelay: '0.02s' }}
             >
               The stone ax, the wheel, the steam engine, the computer, and now
               AI - the advancement of humanity has always been driven by our
@@ -926,7 +1027,7 @@ const SharedHomeComponent: React.FC = () => {
         {/* slide 7 */}
         <SwiperSlide className="slide">
           <div className="slide-content">
-            <h1 className="blackColor" style={{ animationDelay: '0.01s' }}>
+            <h1 className="blackColor" style={{ animationDelay: '0.02s' }}>
               services
             </h1>
             <p className="para wide blackColor" style={{ animationDelay: '0.3s' }}>
@@ -934,7 +1035,7 @@ const SharedHomeComponent: React.FC = () => {
             </p>
 
             <p className="para wide blackColor" style={{ animationDelay: '0.6s' }}>
-              Our future-proofing services is a three-stage cycle of <a href="#" className="purpleColor">foresight</a>, <a href="#" className="purpleColor">preparation</a>, and <a href="#" className="purpleColor">implementation</a>. We do <a href="#" className="purpleColor">innovation field trips</a> too, fostering visionary outlooks.
+              Our future-proofing services is a three-stage cycle of <a href="#" className="purpleColor">foresight</a>, <a href="#" className="purpleColor">preparation</a>, and <a href="#" className="purpleColor">implementation</a>. We do <a href="#" className="purpleColor">learning journeys</a> too, fostering visionary outlooks.
             </p>
           </div>
         </SwiperSlide>
@@ -942,7 +1043,7 @@ const SharedHomeComponent: React.FC = () => {
         {/* slide 8 */}
         <SwiperSlide className="slide">
           <div className="slide-content">
-            <h1 className="blackColor" style={{ animationDelay: '0.01s' }}>
+            <h1 className="blackColor" style={{ animationDelay: '0.02s' }}>
               what’s after next
             </h1>
             <p className="blackColor" style={{ animationDelay: '0.3s' }}>
@@ -963,7 +1064,7 @@ const SharedHomeComponent: React.FC = () => {
         {/* slide 9 */}
         <SwiperSlide className="slide">
           <div className="slide-content">
-            <h1 className="blackColor" style={{ animationDelay: '0.01s' }}>
+            <h1 className="blackColor" style={{ animationDelay: '0.02s' }}>
               what’s next
             </h1>
             <p className="blackColor" style={{ animationDelay: '0.3s' }}>
@@ -971,11 +1072,14 @@ const SharedHomeComponent: React.FC = () => {
             </p>
             
             <p className="para wide blackColor" style={{ animationDelay: '0.5s' }}>
-              We facilitate immersive workshops involving key stakeholders for scenario development and strategic road mapping. Our applied foresight sessions are collaborative and produce robust strategic plans that incorporate diverse perspectives anticipating future challenges, enabling organizations to prepare effectively for tech innovations.
+            We facilitate immersive workshops, exclusive live events, and membership programs designed to inspire, prepare, 
+            and guide organizations through future challenges. Our offerings include collaborative foresight sessions, strategic
+            planning, and direct engagement with thought leaders, all crafted to foster resilient, forward-thinking strategies.
             </p>
 
             <p className="para wide blackColor italics" style={{ animationDelay: '0.7s' }}>
-              Executive Education and Training, Strategic Planning Workshops, Scenario Development, Collaborative Applied Foresight, Adaptive Strategy Formulation, Risk Anticipation Exercises
+            CogShift Live Sessions and Membership Club, Executive Education and Training, Strategic Planning Workshops, 
+            Scenario Development, Collaborative Applied Foresight, Tech Discovery Sessions
             </p>
           </div>
         </SwiperSlide>
@@ -983,7 +1087,7 @@ const SharedHomeComponent: React.FC = () => {
         {/* slide 10 */}
         <SwiperSlide className="slide">
           <div className="slide-content">
-            <h1 className="blackColor" style={{ animationDelay: '0.01s' }}>
+            <h1 className="blackColor" style={{ animationDelay: '0.02s' }}>
               what’s now
             </h1>
             <p className="blackColor" style={{ animationDelay: '0.3s' }}>
@@ -1004,16 +1108,17 @@ const SharedHomeComponent: React.FC = () => {
         {/* Ib */}
         <SwiperSlide className="slide">
           <div className="slide-content">
-            <h1 className="blackColor" style={{ animationDelay: '0.01s' }}>
-              what’s beyond
+            <h1 className="blackColor" style={{ animationDelay: '0.02s' }}>
+              what&apos;s beyond
             </h1>
             <p className="blackColor" style={{ animationDelay: '0.3s' }}>
-              <span className="purpleColor italics">Innovation field trips</span> |
+              <span className="purpleColor italics">Learning
+              journeys.</span> |
               Explore frontiers
             </p>
             
             <p className="para wide blackColor" style={{ animationDelay: '0.5s' }}>
-              We organize immersive 4-5-day learning journeys that expose executives to cutting-edge innovations and disruptive technologies. Our curated trips include high-level meetings with Strategy Chiefs of global tech giants and CEOs of disruptive startups. These expeditions provide unparalleled insights into emerging and forthcoming trends, boosting innovation mindsets and strategic foresight for participants.
+              We organize immersive 4-5-day field trips that expose executives to cutting-edge innovations and disruptive technologies. Our curated trips include high-level meetings with Strategy Chiefs of global tech giants and CEOs of disruptive startups. These expeditions provide unparalleled insights into emerging and forthcoming trends, boosting innovation mindsets and strategic foresight for participants.
             </p>
 
             <p className="para wide blackColor italics" style={{ animationDelay: '0.7s' }}>
@@ -1025,7 +1130,7 @@ const SharedHomeComponent: React.FC = () => {
         {/* slide 11 */}
         <SwiperSlide className="slide">
           <div className="slide-content">
-            <h1 className="blackColor" style={{ animationDelay: '0.01s' }}>
+            <h1 className="blackColor" style={{ animationDelay: '0.02s' }}>
               clients
             </h1>
             <p
@@ -1122,7 +1227,7 @@ const SharedHomeComponent: React.FC = () => {
         {/* slide 12 */}
         <SwiperSlide className="slide">
           <div className="slide-content">
-            <h1 className="blackColor" style={{ animationDelay: '0.01s' }}>
+            <h1 className="blackColor" style={{ animationDelay: '0.02s' }}>
               you
             </h1>
             <p
@@ -1156,8 +1261,8 @@ const SharedHomeComponent: React.FC = () => {
         {/* slide 13 */}
         <SwiperSlide className="slide">
           <div className="slide-content">
-            <h1 className="blackColor" style={{ animationDelay: '0.01s' }}>
-              our team + partners
+            <h1 className="blackColor" style={{ animationDelay: '0.02s' }}>
+              our setup
             </h1>
             <p className="blackColor para " style={{ animationDelay: '0.3s' }}>
               <span
@@ -1176,19 +1281,19 @@ const SharedHomeComponent: React.FC = () => {
         {/* slide 14 */}
         <SwiperSlide className="slide">
           <div className="slide-content">
-            <h1 className="blackColor" style={{ animationDelay: '0.01s' }}>
-              ideation
+            <h1 className="blackColor" style={{ animationDelay: '0.02s' }}>
+              leadership team
             </h1>
             <p
               className="para wide blackColor"
               style={{ animationDelay: '0.3s' }}
             >
-              Strategists, technologists, futurists, and creatives, BLVCK
-              <span className="italics">PIXEL</span> is driven by our desire to
-              prepare humanity for the incredible changes to come in our
-              societies.
+              Visionaries, strategists, technologists, and creatives, our leadership team brings over twelve decades of 
+              combined excellence across diverse sectors and regions. United by a commitment to shaping a future-ready
+              society, we leverage innovation to prepare humanity for the transformative changes to come.
             </p>
-            <p
+
+            {/* <p
               className="para wide blackColor"
               style={{ animationDelay: '0.6s' }}
             >
@@ -1196,21 +1301,76 @@ const SharedHomeComponent: React.FC = () => {
               emerging tech industry, the core team is backed by a global
               network of experts who create convergence-ready innovations for
               our clients.
-            </p>
+            </p> */}
+
+            <div
+              className="swiper-container partner"
+              style={{ animationDelay: '0.3s' }}
+            >
+              <button className="navigationArrow left" onClick={handlePrevPart}>
+                <SlArrowLeft />
+              </button>
+
+              <Swiper
+                onInit={(swiper) => (swiperRefPartner.current = swiper)}
+                slidesPerView={5}
+                navigation={false}
+                autoplay={false}
+                speed={500}
+                loop={true}
+                className="mySwiper1"
+                spaceBetween={0}
+                style={{ width: '100%' }}
+                modules={[Pagination, EffectFade, Mousewheel, Keyboard]}
+                keyboard={true}
+                breakpoints={{
+                  320: {
+                    slidesPerView: 2,
+                    spaceBetween: 10,
+                  },
+                  768: {
+                    slidesPerView: 3,
+                    spaceBetween: 15,
+                  },
+                  992: {
+                    slidesPerView: 3,
+                    spaceBetween: 20,
+                  },
+                  1200: {
+                    slidesPerView: 3,
+                    spaceBetween: 25,
+                  },
+                }}
+              >
+                {partnersDetails.map((src, index) => (
+                  <SwiperSlide
+                    key={index}
+                    onClick={() => handleOpenPartner(src)}
+                    className="slide partner-img"
+                  >
+                    <img src={src.src} width={100} alt={`Slide ${index}`} />
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+
+              <button className="navigationArrow right" onClick={handleNextPart}>
+                <SlArrowRight />
+              </button>
+            </div>
           </div>
         </SwiperSlide>
 
         {/* slide 15 */}
         <SwiperSlide className="slide last-slide">
           <div className="slide-content">
-            <h1 className="blackColor">production</h1>
+            <h1 className="blackColor">ecosystem</h1>
             <p
               className="para wide extra blackColor"
-              style={{ animationDelay: '0.01s' }}
+              style={{ animationDelay: '0.02s' }}
             >
-              In addition, our partners bring complementary services that assure
-              the readiness and scalability of our use cases and new business
-              models.
+              Through a global network of trusted partners, top tech integrators and specialized experts, we provide services 
+              that assure the readiness, scalability, and impact of our innovative solutions. With this approach we deliver
+              seamless, end-to-end implementations, empowering clients to thrive an ever-evolving digital landscape.      
             </p>
             <div
               className="swiper-container"
@@ -1304,8 +1464,8 @@ const SharedHomeComponent: React.FC = () => {
           style={{ backgroundColor: '#000', color: 'white' }}
         >
           <div className="slide-content">
-            <h1 className="fade-animation w-fit" style={{ animationDelay: '0.01s', display: 'flex', fontWeight: '700' }}>
-              &nbsp;&nbsp;the BLVCK<span className='italic'>BOOK</span>&nbsp;&nbsp;
+            <h1 className="fade-animation w-fit" style={{ animationDelay: '0.02s', display: 'flex', fontWeight: '700' }}>
+              &nbsp;&nbsp;BLVCK<span className='italic'>BOOK</span>&nbsp;&nbsp;
             </h1>
             <p
               className="italics fade-animation"
@@ -1316,9 +1476,9 @@ const SharedHomeComponent: React.FC = () => {
             <ul className="para wide tick" style={{ animationDelay: '0.6s' }}>
               <li className="" style={{ marginBottom: '15px' }}>
                 <span className="">
-                  Read our last papers and forecasts to see [ what’s after
-                  next]. You have to [ subscribe ], but hey, it’s addictive. The
-                  first one is free … ;
+                Dive into our latest insights and bold forecasts on what lies beyond the horizon. Each quarterly issue unpacks
+                future-focused themes that are reshaping business and society. You&apos;ll need to subscribe, but fair warning: it&apos;s
+                addictive. Get a taste... and see [ what&apos;s after next ].;)
                 </span>
               </li>
             </ul>
@@ -1369,33 +1529,36 @@ const SharedHomeComponent: React.FC = () => {
                 
               <div className="sides flex gap-[25px] mx-[10px] max-w-[1010px] overflow-x-auto md:mx-0">
 
-                {boxesData.map((journal, index) => (
-                  <Link
-                    key={journal.id}
-                    href={`/journal/${journal.slug}/?bnxn=1`}
-                    className={`relative journal-container bg-cover bg-center bg-no-repeat ${activeIndex === index ? 'rainbow-border' : ''} rounded-lg `}
-                    onMouseEnter={() => handleHover(index)} 
-                    style={{
-                      backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_URL}/${journal.background})`,
-                    }}
-                    onClick={() => {
-                      sessionStorage.setItem('blackboxBx', JSON.stringify(journal));
-                    }}
-                    // @ts-ignore
-                    ref={(el) => (journalRefs.current[index] = el)}
-                  >
-                    <h6>{journal.title}</h6>
-                    <span>BLVCK<span className='italic'>BOOK</span>  |  the foresight journal. 
-                    </span>
-                    {/* <span>{journal.edition}</span> */}
+              {boxesData.map((journal, index) => (
+                <Link
+                  key={journal.id}
+                  href={`/journal/${journal.slug}/?bnxn=1`}
+                  className={`relative journal-container bg-cover bg-center bg-no-repeat ${activeIndex === index ? 'rainbow-border' : ''} rounded-lg`}
+                  lang="en"
+                  hrefLang="en"
+                  translate="no"
+                  onMouseEnter={() => handleHover(index)} 
+                  style={{
+                    backgroundImage: `url(${process.env.NEXT_PUBLIC_BASE_URL}/${journal.background})`,
+                  }}
+                  onClick={() => {
+                    sessionStorage.setItem('blackboxBx', JSON.stringify(journal));
+                  }}
+                  // @ts-ignore
+                  ref={(el) => (journalRefs.current[index] = el)}
+                >
+                  <h6 lang="en" translate="no">{journal.title}</h6>
+                  <span lang="en" translate="no">
+                    BLVCK<span className="italic">BOOK</span> | the foresight journal.
+                  </span>
+                  {/* <span lang="en" translate="no">{journal.edition}</span> */}
 
-                    <div className="absolute matbtm capitalize bottom-2 right-2">
-                      { 
-                        `${getFullMonth(journal.date)}, ${getFullYear(journal.date)}`
-                      }
-                    </div>
-                  </Link>
-                ))}
+                  <div className="absolute matbtm capitalize bottom-2 right-2" lang="en" translate="no">
+                    {`${getFullMonth(journal.date)}, ${getFullYear(journal.date)}`}
+                  </div>
+                </Link>
+              ))}
+
               </div>
 
                 <button
@@ -1416,7 +1579,7 @@ const SharedHomeComponent: React.FC = () => {
           <div className="slide-content">
             <h1
               className="blackColor fade-animation"
-              style={{ animationDelay: '0.01s' }}
+              style={{ animationDelay: '0.02s' }}
             >
               get in touch
             </h1>
@@ -1460,7 +1623,7 @@ const SharedHomeComponent: React.FC = () => {
                 bureau.{' '}
               </li>
               <li className="blackColor">
-                And yes, we’re always looking for{' '}
+                And yes, we&apos;re always looking for{' '}
                 <a href="#" className="purpleColor" onClick={openTalentsPopup}>
                   talents
                 </a>

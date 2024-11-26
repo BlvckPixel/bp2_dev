@@ -9,6 +9,7 @@ import {
   Pagination,
   Mousewheel,
   Keyboard,
+  Navigation,
 } from 'swiper/modules';
 import 'swiper/swiper-bundle.css';
 import 'swiper/css';
@@ -26,6 +27,7 @@ import Image from 'next/image';
 import axios from 'axios';
 import { getFullMonth } from '@shared/home';
 import { borderColors  } from '@/tribe';
+import { SlArrowLeft, SlArrowRight } from 'react-icons/sl';
 
 
  // Added by brobot 
@@ -66,9 +68,11 @@ interface ApiResponse {
 }
 
 function getColor(colors: any[], index: any) {
-  console.log('colors,: ', colors[index % colors.length])
+  // console.log('colors,: ', colors[index % colors.length])
   return colors[index % colors.length];
 }
+
+
 
 // Ended here
 
@@ -76,6 +80,8 @@ function JournalSharedPage({ slug }: { slug?: string }) {
   const { isBgDark, setIsBgDark } = useApp();
   const swiperRef = useRef<SwiperCore | null>(null);
   const swiperRefForeword = useRef<SwiperCore | null>(null);
+  const swiperRefConclude = useRef<SwiperCore | null>(null);
+  const swiperRefContent = useRef<SwiperCore | null>(null);
   const [bannerBg, setBannerBg] = React.useState('defalut.jpg');
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [signInPopupVisible, setSignInPopupVisible] = React.useState(false);
@@ -85,6 +91,112 @@ function JournalSharedPage({ slug }: { slug?: string }) {
   const router = useRouter();
 
   const [journalBlackBox, setJournalBlackBox] = React.useState({});
+
+
+
+  const goToSlide = (slideNumber: number) => {
+    // console.log(swiperRef)
+    
+    if (swiperRef.current) {
+      swiperRef.current.slideTo(slideNumber, 500); // 500ms transition
+    }
+  };
+  const divRef = useRef([]);
+
+  const scrollToActive = (index: any) => {
+    if (divRef.current[index]) {
+      // @ts-ignore
+      divRef.current[index].scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const [activeIndex, setActiveIndex] = React.useState(0);
+
+
+const handleTPrev = () => {
+  setActiveIndex((prevIndex) => {
+    const newIndex = prevIndex === 0 ? contentcards.length - 1 : prevIndex - 1;
+    scrollToActive(newIndex);
+    return newIndex;
+  });
+};
+
+
+
+const handlePrevPart = () => {
+  if (swiperRefContent.current) {
+    setActiveIndex((prevIndex) => {
+      const newIndex = prevIndex === 0 ? contentcards.length - 1 : prevIndex - 1;
+      scrollToActive(newIndex);
+      // @ts-ignore
+      swiperRefContent.current.slidePrev();
+      return newIndex;
+    });
+  }
+};
+
+const handleNextPart = () => {
+  if (swiperRefContent.current) {
+    setActiveIndex((prevIndex) => {
+      const newIndex = prevIndex === contentcards.length - 1 ? 0 : prevIndex + 1;
+      scrollToActive(newIndex);
+      // @ts-ignore
+      swiperRefContent.current.slideNext();
+      return newIndex;
+    });
+  }
+};
+
+
+
+
+const littleMod = (index: number) => {
+  // @ts-ignore
+  swiperRef.current.swiper.slideTo(index)
+}
+
+
+
+
+
+const handleTNext = () => {
+  setActiveIndex((prevIndex) => {
+    const newIndex = prevIndex === contentcards.length - 1 ? 0 : prevIndex + 1;
+    scrollToActive(newIndex);
+    return newIndex;
+  });
+};
+
+
+
+const goToPreviousSlide = () => {
+  if (swiperRef.current) swiperRef.current.slidePrev();
+};
+
+const goToNextSlide = () => {
+  
+  if (swiperRef.current) {
+    swiperRef.current.slideNext();
+  } else {
+    console.error("Swiper reference is not available.");
+  }
+};
+
+
+
+
+const goToSpecificSlide = (slideIndex: number) => {
+  console.log("slide to: ", slideIndex)
+  if (swiperRef.current) swiperRef.current.slideTo(slideIndex);
+};
+
+  // const goToLastSlide = () => {
+  //   if (swiperRef1.current) {
+  //     const lastIndex = swiperRef1.current.slides.length - 1; // Get the last slide index
+  //     swiperRef1.current.slideTo(lastIndex, 500); // Move to the last slide with a smooth transition
+  //   }
+  // };
+  
 
   const scrollRef = useRef(null);
   const contentScroll = useRef(null)
@@ -164,23 +276,42 @@ function JournalSharedPage({ slug }: { slug?: string }) {
 
   const goToPrevSlide = () => {
     if (swiperRef.current) {
+      swiperRef.current.activeIndex = 1;
       swiperRef.current.slidePrev();
     }
   };
 
-  const goToNextSlide = () => {
+  const getSlideLength = () => {
     if (swiperRef.current) {
-      swiperRef.current.slideNext();
+      const totalSlides = swiperRef.current.slides.length;
+      return totalSlides// Go to the last slide (zero-based index)
     }
   };
+  
 
-  const goToSpecificSlide = (index: number) => {
+  // const goToNextSlide = () => {
+  //   if (swiperRef.current) {
+  //     swiperRef.current.slideNext();
+  //   }
+  // };
+
+  // const goToSpecificSlide = (index: number) => {
+  //   if (swiperRef.current) {
+  //     swiperRef.current.slideTo(index);
+  //   }
+  // };
+
+  const goToLastSlide = () => {
     if (swiperRef.current) {
-      swiperRef.current.slideTo(index);
+      const totalSlides = swiperRef.current.slides.length;
+      console.log(totalSlides);
+      swiperRef.current.slideTo(totalSlides - 1); // Go to the last slide (zero-based index)
     }
   };
+  
   const [contentcards, setContentcards] = React.useState<ContentCardType[]>([]);
   const [editorial, setEditorial] = React.useState<EditorialType | null>(null);
+  const [conclusion, setConclusion] = React.useState<EditorialType | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -236,6 +367,10 @@ function JournalSharedPage({ slug }: { slug?: string }) {
     ? splitContentIntoSlides(editorial.section, 500)
     : [];
 
+  const conclusionSlides = conclusion
+    ? splitContentIntoSlides(conclusion.section, 500)
+    : [];
+
   const handleMouseEnter = () => {
     swiperRef.current?.autoplay.stop();
   };
@@ -251,20 +386,39 @@ function JournalSharedPage({ slug }: { slug?: string }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (editorialSlides.length > 0) {
+      setTuneNum(editorialSlides.length + 1);
+    }
+  }, [editorialSlides])
+
 
   useEffect(() => {
+    // Fetch session data
     const tile: any = sessionStorage.getItem('blackboxBx');
     setJournalBlackBox(JSON.parse(tile));
     
+    goToSpecificSlide(0);
+    
+    // Check the search parameters
     const fint = searchies.has('bnxn');
+  
     if (!fint) {
-      goToSpecificSlide(1);
-      if(searchies.has('cntnt')) {
-        goToNextSlide();
+      // goToSpecificSlide(1);
+      //goToLastSlide();  // Go to specific slide if 'bnxn' not found
+  
+      if (searchies.has('cntnt')) {
+        // Delay execution to allow all slides to render
+        setTimeout(() => {
+          goToSpecificSlide(tuneNum); // Go to the last slide after editorial slides are injected
+        }, 2000); // Adjust timeout duration as necessary based on your slide injection timing
       }
       return;
     }
-  }, []);
+    // setActiveButton(2);
+    // goToSpecificSlide(1);
+  }, [swiperRef.current?.slides.length]); 
+  
   
 
   useEffect(() => {
@@ -285,6 +439,7 @@ function JournalSharedPage({ slug }: { slug?: string }) {
         );
         setContentcards(response.data.contentcards);
         setEditorial(response.data.editorial);
+        setConclusion(response.data.conclusion);
       } catch (error) {
         console.error('Error fetching contentcards:', error);
         setError('Failed to fetch data.');
@@ -316,21 +471,45 @@ function JournalSharedPage({ slug }: { slug?: string }) {
     return () => clearInterval(interval);
   }, []);
 
+
+  const [activeButton, setActiveButton] = React.useState(1);
+  const [tuneNum, setTuneNum] = React.useState(1);
+
+  const handleButtonClick = (buttonName: any, action: () => void) => {
+    setActiveButton(buttonName);
+    action();
+  };
+
+  // Added By Brobot
+  
+  const openSignInPopup = () => setSignInPopupVisible(true);
+  const handleEditProfile = () => {
+    openSignInPopup();
+    setEditProfile(true);
+  };
+
+
+  const handleMenuClick = (index: number) => {
+    console.log(swiperRef.current?.slides)
+    if (swiperRef.current) {
+      swiperRef.current.slideTo(index);
+    }
+  };
+
   return (
     <>
       <Header
         fixedNav={true}
-        openEditProfile={() => {}}
+        openEditProfile={handleEditProfile}
         handleGoBack={() => {
-          router.push('/');
+          swiperRef.current?.slidePrev();
         }}
         openSearchPopup={() => {}}
-        openSignInPopup={() => {
-          setSignInPopupVisible(true);
-        }}
+        openSignInPopup={openSignInPopup}
         displayGoBack={true}
         swiperRef={swiperRef}
         showHome={true}
+        // showToggleButton={true}
         invert={false}
       />
 
@@ -342,11 +521,11 @@ function JournalSharedPage({ slug }: { slug?: string }) {
           onEditProfile={editProfile}
         />
       )}
+      
 
       <Swiper
-        onInit={(swiper) => {
-          swiperRef.current = swiper;
-        }}
+        onInit={(swiper) => (swiperRef.current = swiper)}
+        // onSwiper={(swiper) => (swiperRef.current = swiper)}
         spaceBetween={0}
         centeredSlides={true}
         slidesPerView={1}
@@ -358,7 +537,7 @@ function JournalSharedPage({ slug }: { slug?: string }) {
         fadeEffect={{
           crossFade: true,
         }}
-        modules={[Autoplay, Pagination, EffectFade, Mousewheel, Keyboard]}
+        modules={[Autoplay, Pagination, EffectFade, Mousewheel, Keyboard, Navigation]}
         className="mySwiper"
         mousewheel={{
           forceToAxis: true,
@@ -367,7 +546,15 @@ function JournalSharedPage({ slug }: { slug?: string }) {
           thresholdDelta: 1,
         }}
         onSlideChange={(swiper) => {
-          // console.log('slide change', swiper.activeIndex);
+          if (swiper.activeIndex >= 1 && swiper.activeIndex < tuneNum - 1) {
+            setActiveButton(1)
+          } else if (swiper.activeIndex >= tuneNum + 1) {
+            setActiveButton(tuneNum + 1)
+          } else {
+            setActiveButton(swiper.activeIndex + 1);  
+          }
+          // console.log(swiper.activeIndex >= 1)
+          // console.log(swiper.activeIndex < tuneNum)
           if (swiper.activeIndex <= 10) {
             setIsBgDark(true);
           } else {
@@ -379,7 +566,7 @@ function JournalSharedPage({ slug }: { slug?: string }) {
         autoHeight={true}
         // threshold={isMobile ? 15 : 2}
       >
-        <SwiperSlide
+        {/* <SwiperSlide
           className="slide-banner banner-slider bg-overlay"
           style={{
             // @ts-ignore
@@ -396,21 +583,19 @@ function JournalSharedPage({ slug }: { slug?: string }) {
             <p>[ scroll to read ]</p>
           </div>
           <div className="banner-slider-content relative app_container" >
-            {/* @ts-ignore */}
+             @ts-ignore 
             <h3>{journalBlackBox ? journalBlackBox?.title : 'Cognitives cities'}</h3>
-            {/* @ts-ignore */}
+            {/* @ts-ignore 
             <p>The foresight journal - Edition of {journalBlackBox ? getFullMonth(journalBlackBox?.date) : 'November'}</p>
             <p>
-            {/* @ts-ignore */}
+             @ts-ignore
             {journalBlackBox?.description ? journalBlackBox?.description : 
               'BLVCKPIXEL is a new-age company combining human ingenuity with   machine intelligence to provide niche expertise on foresight.'}
             </p>
           </div>
-        </SwiperSlide>
+        </SwiperSlide> */}
 
         {/* Editorials */}
-
-        {/* Added Splited Editorials */}
         {
           editorialSlides.length > 0 ? 
           (
@@ -432,53 +617,21 @@ function JournalSharedPage({ slug }: { slug?: string }) {
                       <div className={uiStyle.wrapper}>
                         <div className={uiStyle.col}>
                           { index === 0 && (<h1>[ foreword ]</h1>) }
-                          <Swiper
-                            onInit={(swiper) => {
-                              swiperRef.current = swiper;
-                            }}
-                            spaceBetween={0}
-                            centeredSlides={false}
-                            slidesPerView={'auto'}
-                            speed={1350}
-                            freeMode={true}
-                            effect="fade"
-                            fadeEffect={{
-                              crossFade: true,
-                            }}
-                            modules={[
-                              Pagination,
-                              EffectFade,
-                              Mousewheel,
-                              Keyboard,
-                            ]}
-                            className={uiStyle.editorialSwiper}
-                            mousewheel={{
-                              forceToAxis: true,
-                              sensitivity: 1,
-                              releaseOnEdges: false,
-                              invert: false,
-                            }}
-                            direction={'horizontal'}
-                            followFinger={true}
-                            autoHeight={false}
-                            threshold={15}
-                            onMouseEnter={handleMouseEnter}
-                            onMouseLeave={handleMouseLeave}
-                          >
-                            <SwiperSlide className={uiStyle.swiperslide}>
-                              <div 
-                                ref={scrollRef}
-                                dangerouslySetInnerHTML={{
-                                  __html: `${slidecontent}`,
-                                }}
-                              >                           
-                              </div>
-                            </SwiperSlide>
-                          </Swiper>
+                          
+                          <div className={uiStyle.swiperslide}>
+                            <div 
+                              ref={scrollRef}
+                              dangerouslySetInnerHTML={{
+                                __html: `${slidecontent}`,
+                              }}
+                            >                           
+                            </div>
+                          </div>
                         </div>
                         
                         {
-                          index === 0 && (
+                          // @ts-ignore
+                          index === (editorialSlides.length - 1) && (
                             <div className={uiStyle.signature}>
                               <Image
                                 src="/signature.png"
@@ -502,6 +655,7 @@ function JournalSharedPage({ slug }: { slug?: string }) {
             </SwiperSlide>
           )
         }
+       
         
 
         
@@ -513,57 +667,251 @@ function JournalSharedPage({ slug }: { slug?: string }) {
               [ contents ]
             </h1>
 
-            <div className="trush grid grid-cols-1 md:grid-cols-3 gap-[20px] max-h-[60vh] overflow-y-auto md:gap-[50px]" ref={contentScroll}>
-            {/* <button
-              onClick={contentScrollUp} // bg-gray-200
-              className="absolute md:hidden right-0 z-50 top-[15vh] bg-transparent text-gray-200 hover:bg-gray-200 hover:text-gray-700 px-4 py-2 rounded"
-            >
-              ↑
-            </button> 
-            
-            <button
-              onClick={contentScrollDown}
-              className="absolute md:hidden right-0 z-50 bottom-[20vh] bg-transparent text-gray-200 hover:bg-gray-200 hover:text-gray-700 px-4 py-2 rounded"
-            >
-              ↓
-            </button> */}
-              {
-                contentcards.length > 0 && contentcards.map((item, index) => (
-                  <div
-                  key={index + item.blvckbox_id}
-                  onClick={() => {
-                    handleJournalClick(`/journal/${slug}/${item.slug}`);
-                    localStorage.setItem('borderColor', getColor(borderColors, index));
-                  }}
-                  className="cursor-pointer"
-                >
-                  <div 
-                    className={`${uiStyle.vinyl} border-[3px] md:border-[8px] text-center flex items-center justify-center h-[100px] md:h-[200px] w-[100px] md:w-[300px] rounded-3xl relative overflow-hidden transition`} 
-                    style={{ 
-                      borderColor: 
-                        hoveredCardIndex === index
-                        ? getColor(borderColors, index) : 'white',
-                      backgroundImage:
-                          hoveredCardIndex === index
-                            ? item.background ? `url(${process.env.NEXT_PUBLIC_BASE_URL}/${item.background})` : `url(/pixel2.png)`
-                            : 'none',
-                     backgroundPosition: 'center', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', transition: 'background-size 0.5s ease, background-image 0.5s ease', 
+            <p className='text-[14px] md:text-[16px] lg:text-[24px]'>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore
+            magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo 
+            consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+            </p>
+
+            <div className='relative kunli'>
+             <button
+                onClick={handleTPrev}
+                className='hover:text-[#DD47F7] left transition'
+                style={{
+                  left: '-25px'
+                }}
+              >
+                <SlArrowLeft/>
+              </button>
+              <div className="trush grid relative grid-cols-1 md:grid-cols-3 gap-[20px] max-h-[60vh] overflow-y-auto md:gap-[50px]" ref={contentScroll}>
+              
+                {
+                  contentcards.length > 0 && contentcards.map((item, index) => (
+                    <div
+                    key={index + item.blvckbox_id}
+                    onClick={() => {
+                      handleJournalClick(`/journal/${slug}/${item.slug}`);
+                      localStorage.setItem('borderColor', getColor(borderColors, index));
                     }}
-                    onMouseEnter={() => setHoveredCardIndex(index)}
-                    onMouseLeave={() => setHoveredCardIndex(null)}
+                    className="cursor-pointer"
+                    // @ts-ignore
+                    ref={(el) => (divRef.current[index] = el)}
                   >
-                    <span className='absolute w-full h-full bg-[#1c1c1c3c]'/>
-                    <p className="text-[23px] max-w-[200px] md:text-[15px] font-bold" style={{ fontSize: '25px', fontWeight: 'lighter' }}>
-                      {item.title}
-                    </p>
+                    <div
+                      className={`${uiStyle.vinyl} border-[3px] md:border-[8px] text-center flex items-center justify-center h-[100px] md:h-[200px] w-[100px] md:w-[300px] relative overflow-hidden transition`}
+                      style={{
+                        borderColor:
+                        (hoveredCardIndex === index || activeIndex === index)
+                          ? getColor(borderColors, index) : 'white',
+                        backgroundImage:
+                        (hoveredCardIndex === index || activeIndex === index)
+                              ? item.background ? `url(${process.env.NEXT_PUBLIC_BASE_URL}/${item.background})` : `url(/pixel2.png)`
+                              : 'none',
+                       backgroundPosition: 'center', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', transition: 'background-size 0.5s ease, background-image 0.5s ease',
+                      }}
+                      onMouseEnter={() => setHoveredCardIndex(index)}
+                      onMouseLeave={() => setHoveredCardIndex(null)}
+                    >
+                      <span className='absolute w-full h-full bg-[#1c1c1c3c]'/>
+                      <p className="text-[23px] max-w-[200px] md:text-[15px] font-bold" style={{ fontSize: '25px', fontWeight: 'lighter' }}>
+                        {item.title}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                ))
-              }
+                  ))
+                }
+              </div>
+                <button
+                  onClick={handleTNext}
+                  className='hover:text-[#DD47F7] transition'
+                  style={{
+                    right: '-25px'
+                  }}
+                >
+                  <SlArrowRight/>
+                </button>
             </div>
+
+            {/* <div
+              className="swiper-container partner"
+              style={{ animationDelay: '0.3s' }}
+            >
+              <button className="navigationArrow left !text-white hover:text-[#DD47F7] transition" onClick={handlePrevPart}>
+                <SlArrowLeft />
+              </button>
+
+              <Swiper
+                onInit={(swiper) => (swiperRefContent.current = swiper)}
+                slidesPerView={5}
+                navigation={false}
+                autoplay={false}
+                speed={500}
+                loop={true}
+                className="mySwiper1"
+                spaceBetween={0}
+                style={{ width: '100%' }}
+                modules={[Pagination, EffectFade, Mousewheel, Keyboard]}
+                keyboard={true}
+                breakpoints={{
+                  320: {
+                    slidesPerView: 2,
+                    spaceBetween: 10,
+                  },
+                  768: {
+                    slidesPerView: 3,
+                    spaceBetween: 15,
+                  },
+                  992: {
+                    slidesPerView: 3,
+                    spaceBetween: 20,
+                  },
+                  1200: {
+                    slidesPerView: 3,
+                    spaceBetween: 25,
+                  },
+                }}
+              >
+                {contentcards.length > 0 && contentcards.map((item, index) => (
+                  <SwiperSlide
+                    key={index + item.blvckbox_id}
+                    onClick={() => {
+                      handleJournalClick(`/journal/${slug}/${item.slug}`);
+                      localStorage.setItem('borderColor', getColor(borderColors, index));
+                    }}
+                    className="cursor-pointer"
+                    // @ts-ignore
+                    ref={(el) => (divRef.current[index] = el)}
+                  >
+                    <div
+                      className={`${uiStyle.vinyl} border-[3px] md:border-[8px] text-center flex items-center justify-center h-[100px] md:h-[200px] w-[100px] md:w-[300px] relative overflow-hidden transition`}
+                      style={{
+                        borderColor:
+                        (hoveredCardIndex === index || activeIndex === index)
+                          ? getColor(borderColors, index) : 'white',
+                        backgroundImage:
+                        (hoveredCardIndex === index || activeIndex === index)
+                              ? item.background ? `url(${process.env.NEXT_PUBLIC_BASE_URL}/${item.background})` : `url(/pixel2.png)`
+                              : 'none',
+                      backgroundPosition: 'center', backgroundSize: 'cover', backgroundRepeat: 'no-repeat', transition: 'background-size 0.5s ease, background-image 0.5s ease',
+                      }}
+                      onMouseEnter={() => setHoveredCardIndex(index)}
+                      onMouseLeave={() => setHoveredCardIndex(null)}
+                    >
+                      <span className='absolute w-full h-full bg-[#1c1c1c3c]'/>
+                      <p className="text-[23px] max-w-[200px] md:text-[15px] font-bold" style={{ fontSize: '25px', fontWeight: 'lighter' }}>
+                        {item.title}
+                      </p>
+                    </div>
+                  </SwiperSlide>
+                ))}
+              </Swiper>
+
+              <button className="navigationArrow right hover:text-[#DD47F7] transition !text-white" onClick={handleNextPart}>
+                <SlArrowRight />
+              </button>
+            </div> */}
           </div>
         </SwiperSlide>
+
+
+        {/* Added Splited ConclusionSlides */}
+
+        {conclusionSlides.length > 0 ? 
+          (
+            conclusionSlides.map((slidecontent, index) => (
+              slidecontent !== '<p></p>' && slidecontent !== '<p> </p>' && slidecontent !== '</p>' ? (  // Check if slidecontent is not an empty paragraph
+                <SwiperSlide className='minders' key={index}>
+                  <section
+                    className={uiStyle.editorialSection}
+                    style={{
+                      backgroundImage: conclusion
+                        ? `url(${process.env.NEXT_PUBLIC_BASE_URL}/storage/${conclusion.background_image})`
+                        : `url('/default-bg.png')`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      minHeight: '100dvh',
+                    }}
+                  >
+                    <div className={uiStyle.pageContainerWide} id="blvckbook">
+                      <div className={uiStyle.wrapper}>
+                        <div className={uiStyle.col}>
+                          { index === 0 && (<h1>[ afterword ]</h1>) }
+                          
+                          <div className={uiStyle.swiperslide}>
+                            <div 
+                              ref={scrollRef}
+                              dangerouslySetInnerHTML={{
+                                __html: `${slidecontent}`,
+                              }}
+                            >                           
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {
+                          // @ts-ignore
+                          index === (conclusionSlides.length - 1) && (
+                            <div className={uiStyle.signature}>
+                              <Image
+                                src="/signature.png"
+                                alt="Signature Author"
+                                width={250}
+                                height={250}
+                              />
+                              <h3>Teddy Pahagbia</h3>
+                            </div>
+                          )
+                        }
+                      </div>
+                    </div>
+                  </section>
+                </SwiperSlide>
+              ) : null  // If slidecontent is '<p></p>', render nothing
+            ))
+          ) : (
+            <SwiperSlide>
+              <p>Loading afterword content...</p>
+            </SwiperSlide>
+          )
+        }
+        
       </Swiper>
+
+      
+       {/* Menu Item */}
+      <div
+        className="absolute z-[1000] right-3 top-16 flex flex-col text-right text-slate-300"
+        style={{
+          fontSize: '12px',
+          lineHeight: '16px',
+          fontWeight: '200',
+          textAlign: 'right'
+        }}
+      >
+        {/* <button onClick={() => handleButtonClick(1, () => swiperRef.current?.slideTo(0))} className={`jornbtn text-white py-1 px-2 rounded ${activeButton === 1 ? 'active' : ''}`}>
+          {activeButton === 1 ? `[ home ]` : 'home'}
+        </button> */}
+
+        <button onClick={() => handleButtonClick(1, () => swiperRef.current?.slideTo(0))} className={`jornbtn text-white py-1 px-2 rounded ${activeButton === 1 ? 'active' : ''}`}>
+          {activeButton === 1 ? `[ foreward ]` : 'foreward'}
+        </button>
+
+        <button onClick={() => handleButtonClick(tuneNum, () => swiperRef.current?.slideTo(tuneNum - 1))} className={`jornbtn text-white py-1 px-2 rounded ${activeButton === tuneNum ? 'active' : ''}`}>
+          {activeButton === tuneNum ? `[ content ]` : 'content'}
+        </button>
+
+        <button onClick={() => handleButtonClick(3, () => swiperRef.current?.slideTo(tuneNum))} className={`jornbtn text-white py-1 px-2 rounded ${activeButton === tuneNum + 1 ? 'active' : ''}`}>
+          {activeButton === tuneNum + 1 ? `[ afterword ]` : 'afterword'}
+        </button>
+
+        <button onClick={() => {
+          sessionStorage.setItem('savedNumber', '1');
+          router.push('/');
+        }} className={`jornbtn text-white py-1 px-2 rounded ${activeButton === tuneNum + 2 ? 'active' : ''}`}>
+          {activeButton === 190 ? `[ exit ]` : 'exit'}
+        </button>
+      </div>
+      {/* Menu Items Ended */}
     </>
   );
 }

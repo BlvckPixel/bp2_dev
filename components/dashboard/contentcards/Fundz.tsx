@@ -252,7 +252,7 @@ const BlvckCardDetail: React.FC = () => {
                   autoplay={false}
                   speed={1000}
                   loop={true}
-                  className="mySwiper1 border-[5px] border-white rounded-[30px]"
+                  className="mySwiper1 border-[5px] border-white rounded-[3px]"
                   spaceBetween={0}
                   modules={[
                     Autoplay,
@@ -265,12 +265,19 @@ const BlvckCardDetail: React.FC = () => {
                   fadeEffect={{
                     crossFade: true,
                   }}
+                  
                   onSlideChange={(swiper) => {
                     console.log('slide change', swiper.activeIndex);
                     if (swiper.activeIndex <= 10) {
                       setIsBgDark(true);
                     } else {
                       setIsBgDark(false);
+                    }
+
+                    if (swiper.pagination && swiper.pagination.bullets) {
+                      swiper.pagination.bullets.forEach((bullet) => {
+                        bullet.style.backgroundColor = "yellow";
+                      });
                     }
                   }}
                   effect="fade"

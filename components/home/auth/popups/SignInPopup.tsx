@@ -22,6 +22,21 @@ interface LoginErrorResponse {
   error: string;
 }
 
+type Feature = {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+function getFeatureNameById(data: any, id: string | number): string | null {
+  // @ts-ignore
+  const feature = data.find((item) => item.id === parseInt(id as string, 10));
+  console.log("feat: ",feature);
+  return feature ? feature.name : null;
+}
+
 const SignInPopup: React.FC<SignInPopupProps> = ({
   onClose,
   onSignInSuccess,
@@ -49,6 +64,7 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
+  const [selectedPackagePrice, setSelectedPackagePrice] = useState<number | null>(null);
   const [selectedPackageName, setSelectedPackageName] = useState<string | null>(
     null
   );
@@ -62,12 +78,24 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
   const [editable, setEditable] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<string>('');
   const router = useRouter();
+  const [demFeatures, setDemFeatures] = useState<Feature[]>([]);
   const [authUser, setAuthUser] = useState<boolean>(false);
   const [packages, setPackages] = useState<any[]>([]);
   const [showPackageSelection, setShowPackageSelection] =
     useState<boolean>(false);
 
   const [showForgotPassword, setShowForgotPassword] = useState<boolean>(false);
+
+  
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState('Bitcoin');
+
+  const paymentTypes = ['Bitcoin', 'Credit Card', 'PayPal', 'Bank Transfer'];
+
+  const handlePaymentChange = (payment: any) => {
+    setSelectedPayment(payment);
+    setIsDropdownOpen(false); // Close dropdown after selection
+  };
 
   const handleDashboardNavigation = () => {
     router.push('/dashboard');
@@ -86,10 +114,13 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/packages`
-        );
-        setPackages(response.data);
+        const [featuresResponse, packagesResponse] = await Promise.all([
+          axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/features`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/packages`),
+        ]);
+
+        setDemFeatures(featuresResponse.data.data || []); // Ensure it’s an array
+        setPackages(packagesResponse.data || []);
       } catch (error) {
         console.error('Failed to fetch packages', error);
       }
@@ -97,6 +128,11 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
 
     fetchPackages();
   }, []);
+
+  function getFeatureNameById(id: string | number): string | null {
+    const feature = demFeatures.find((item) => item.id === parseInt(id as string, 10));
+    return feature ? feature.name : null;
+  }
 
   useEffect(() => {
     if (loggedUser?.role_id == 1 || loggedUser?.role_id == 2) {
@@ -209,7 +245,8 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
       console.log('Password reset link sent', response.data);
       setLoading(false);
       setSuccess(true);
-      setButtonText('✔');
+      // setButtonText('✔');s
+      setButtonText("Check your email and click on the password reset link")
     } catch (error) {
       console.error('Password reset failed', error);
       const axiosError = error as AxiosError<{ error: string }>;
@@ -250,6 +287,10 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
       );
 
       console.log('SignUp successful', response.data);
+      const resp = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/user/${response.data.user.id}/payments`, {
+        amount: selectedPackagePrice,
+        package_id: selectedPackage
+      })
       setLoading(false);
       setSuccess(true);
       setButtonText('✔');
@@ -337,9 +378,10 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
   const toggleConfirmPasswordVisibility = () =>
     setConfirmPasswordVisible(!confirmPasswordVisible);
 
-  const handlePackageSelect = (pkgID: number, pkgName: string) => {
+  const handlePackageSelect = (pkgID: number, pkgName: string, price?: any) => {
     setSelectedPackage(pkgID);
     setSelectedPackageName(pkgName);
+    setSelectedPackagePrice(price)
   };
 
   const handlePackageUpdate = async (pkgID: number, pkgName: string) => {
@@ -528,6 +570,27 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
                       <div className={` ${style.action} `}>[Change]</div>
                     </div>
 
+                    <div className={`${style.subscription} ${style.frmGrp}`}>
+                      <div className={` ${style.muted}`}>
+                        Method of payment:{' '}
+                      </div>
+                      <div className={` ${style.cPlan}`}>
+                        {selectedPayment}
+                      </div>
+                      <div className={` ${style.action}`} onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
+                        [Change]
+                      </div>
+                      {isDropdownOpen && (
+                        <div className={style.dropdown}>
+                          {paymentTypes.map((payment, index) => (
+                            <div key={index} className={style.dropdownItem} onClick={() => handlePaymentChange(payment)}>
+                              {payment}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
                     <div
                       className={`${style.subscription} ${style.buttonWrapper}`}
                     >
@@ -560,12 +623,11 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
                         </span>
                         <span>
                           <ul>
-                            {pkg.features.map(
-                              (feature: string, index: number) => (
-                                <li key={index}>{feature}</li>
-                              )
-                            )}
+                            {pkg.features.map((featureId: any, index: number) => (
+                              <li key={index}>{getFeatureNameById(featureId) || 'Unknown Feature'}</li>
+                            ))}
                           </ul>
+                            
                         </span>
                       </div>
                     ))}
@@ -637,10 +699,12 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
                               <a
                                 href="#"
                                 style={{ textDecoration: 'underline' }}
-                                onClick={() => handleTabChange('forget')}
+                                onClick={() => handleTabChange('subscribe')}
+                                // forget
                               >
-                                Forget Password?
+                                Click Here
                               </a>
+                              to Subscribe to the BLVCKBOOK
                             </p>
                           ))
                         )}
@@ -693,7 +757,7 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
                       <div
                         key={pkg.id}
                         className={style.package}
-                        onClick={() => handlePackageSelect(pkg.id, pkg.name)}
+                        onClick={() => handlePackageSelect(pkg.id, pkg.name, pkg.price)}
                       >
                         <span>{pkg.name}</span>
                         <span>
@@ -702,11 +766,9 @@ const SignInPopup: React.FC<SignInPopupProps> = ({
                         </span>
                         <span>
                           <ul>
-                            {pkg.features.map(
-                              (feature: string, index: number) => (
-                                <li key={index}>{feature}</li>
-                              )
-                            )}
+                            {pkg.features.map((featureId: any, index: number) => (
+                              <li key={index}>{getFeatureNameById(featureId) || 'Unknown Feature'}</li>
+                            ))}
                           </ul>
                         </span>
                       </div>

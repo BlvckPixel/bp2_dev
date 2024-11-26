@@ -11,6 +11,23 @@
     align-items: center;
     z-index: 9999999;
   }
+
+  .dropdown {
+    position: absolute;
+    background-color: black;
+    border: 1px solid #ccc;
+    z-index: 1;
+  }
+  
+  .dropdownItem {
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+  
+  .dropdownItem:hover {
+    color: black !important;
+    background-color: #f0f0f0;
+  }
   
   .popup {
     background: rgba(255, 255, 255, 1);
@@ -197,10 +214,22 @@
     right: 30px;
 }
 
+.close:hover{
+  color: #dd47f7;
+}
+
+.popup.default .close,
+.popup.talents .close,
 .popup.black .close{
-    color: #ffffff;
-    font-size: 34px;
-    font-family: 'HelveticaNeueCyr-Light';
+  color: #d6d6d6;
+  z-index: 999;
+  font-family: 'HelveticaNeueCyr-UltraLight';
+  font-weight: 100;
+  font-size: 25px;
+}
+
+.popup.black .close:hover{
+  color: #dd47f7;
 }
 
 .navTabs{
@@ -215,6 +244,11 @@
     cursor: pointer;
     font-weight: 400;
     color: #a5a5a5 !important;
+}
+
+.navTabs h2:hover {
+  color: #dd47f7 !important;
+  transition: color .3s ease-in-out;
 }
 
 .navTabs h2.active{
